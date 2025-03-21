@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'register_screen.dart';
+import 'package:habit_tracker/features/authentication/register_screen.dart';
+import 'package:habit_tracker/features/home_screen/add_habit_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     // The login logic goes here
-    print("login logic here");
+    // print("login logic here");
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddHabitScreen()),
+    );
   }
 
   @override
