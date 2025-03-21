@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:habit_tracker/features/authentication/register_screen.dart';
-import 'package:habit_tracker/features/home_screen/add_habit_screen.dart';
+import 'package:habit_tracker/features/home_screen/habit_tracker_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert'; // For jsonDecode
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,12 +19,39 @@ class _LoginScreenState extends State<LoginScreen> {
   final String defaultUsername = 'testuser';
   final String defaultPassword = 'password123';
 
-  void _login() {
-    // The login logic goes here
-    // print("login logic here");
-    Navigator.push(
+  Future<Map<String, dynamic>?> _getUserFromLocalStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user');
+    if (userJson != null) {
+      return jsonDecode(userJson); // Convert JSON string back to a map
+    }
+    return null;
+  }
+
+  void _login() async {
+    final user = await _getUserFromLocalStorage();
+    if (!mounted) return; // Check if the widget is still mounted
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No registered user found')),
+      );
+      return;
+    }
+
+    if (_usernameController.text != user['username']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid username')),
+      );
+      return;
+    }
+
+    // Navigate to the home screen
+    Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => AddHabitScreen()),
+      MaterialPageRoute(
+        builder: (context) => HabitTrackerScreen(username: user['username']),
+      ),
     );
   }
 

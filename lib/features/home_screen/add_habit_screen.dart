@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class AddHabitScreen extends StatefulWidget {
   const AddHabitScreen({super.key});
@@ -31,21 +33,28 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   }
 
   Future<void> _loadHabits() async {
+    final prefs = await SharedPreferences.getInstance();
+    final selectedHabitsJson = prefs.getString('selectedHabits');
+    final completedHabitsJson = prefs.getString('completedHabits');
+
     setState(() {
-      // Hardcoded habits for demonstration
-      selectedHabitsMap = {
-        'Workout': 'FF5733', // Color in hex (e.g., Amber)
-        'Meditate': 'FF33A1',
-        'Read a Book': '33FFA1',
-        'Drink Water': '3380FF',
-        'Practice Gratitude': 'FFC300'
-      };
-      completedHabitsMap = {'Wake Up Early': 'FF5733', 'Journal': 'DAF7A6'};
+      if (selectedHabitsJson != null) {
+        selectedHabitsMap =
+            Map<String, String>.from(jsonDecode(selectedHabitsJson));
+      }
+      if (completedHabitsJson != null) {
+        completedHabitsMap =
+            Map<String, String>.from(jsonDecode(completedHabitsJson));
+      }
     });
   }
 
   Future<void> _saveHabits() async {
-    // This function intentionally left empty as no saving is needed
+    final prefs = await SharedPreferences.getInstance();
+    // Save selectedHabitsMap
+    prefs.setString('selectedHabits', jsonEncode(selectedHabitsMap));
+    // Save completedHabitsMap
+    prefs.setString('completedHabits', jsonEncode(completedHabitsMap));
   }
 
   @override
@@ -59,7 +68,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue.shade700,
-        title: Text('Configure Habits'),
+        title: const Text('Configure Habits'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -127,12 +136,9 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                     selectedColorName = 'Amber'; // Reset to default
                     selectedColor = _habitColors[selectedColorName]!;
                   });
+                  _saveHabits(); // Save habits to local storage
                 }
               },
-              child: Text(
-                'Add Habit',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade700,
                 shape: RoundedRectangleBorder(
@@ -140,6 +146,10 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 ),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: const Text(
+                'Add Habit',
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
             const SizedBox(height: 20),
@@ -161,6 +171,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                           selectedHabitsMap.remove(habitName);
                           completedHabitsMap.remove(habitName);
                         });
+                        _saveHabits(); // Save habits to local storage
                       },
                     ),
                   );

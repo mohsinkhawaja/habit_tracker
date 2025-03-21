@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -56,9 +58,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
+  Future<void> _saveUserToLocalStorage(Map<String, dynamic> user) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(
+        'user', jsonEncode(user)); // Convert user map to JSON string
+  }
+
   void _register() async {
-    // dummy for now
-    print("registration logic here");
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your name')),
+      );
+      return;
+    }
+    if (_usernameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a username')),
+      );
+      return;
+    }
+    if (selectedHabits.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one habit')),
+      );
+      return;
+    }
+
+    // Save user details to local storage
+    final user = {
+      'name': _nameController.text,
+      'username': _usernameController.text,
+      'age': _age.round(),
+      'country': _country,
+      'habits': selectedHabits,
+    };
+    _saveUserToLocalStorage(user);
+
+    // Navigate to the login screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
   }
 
   @override
@@ -130,7 +170,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: availableHabits.map((habit) {
                     final isSelected = selectedHabits.contains(habit);
                     return GestureDetector(
-                      onTap: () => null,
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            selectedHabits.remove(habit); // Deselect habit
+                          } else {
+                            selectedHabits.add(habit); // Select habit
+                          }
+                        });
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
