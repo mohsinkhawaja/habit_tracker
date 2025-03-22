@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import 'package:habit_tracker/features/home_screen/model/country_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -13,9 +13,9 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
-  double _age = 25; // default age
-  String _country = 'United States';
-  List<String> _countries = [];
+  final _passwordController = TextEditingController();
+  double _age = 25;
+  String _country = CountryList.countries.first;
   List<String> selectedHabits = [];
   List<String> availableHabits = [
     'Wake Up Early',
@@ -30,71 +30,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Walk 10,000 Steps'
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchCountries();
-  }
-
-  Future<void> _fetchCountries() async {
-    List<String> subsetCountries = [
-      'United States',
-      'Canada',
-      'United Kingdom',
-      'Australia',
-      'India',
-      'Germany',
-      'France',
-      'Japan',
-      'China',
-      'Brazil',
-      'South Africa'
-    ];
-
-    setState(() {
-      _countries = subsetCountries;
-      _countries.sort();
-      _country = _countries.isNotEmpty ? _countries[0] : 'United States';
-    });
-  }
-
-  Future<void> _saveUserToLocalStorage(Map<String, dynamic> user) async {
+  Future<void> _register() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString(
-        'user', jsonEncode(user)); // Convert user map to JSON string
-  }
+    await prefs.setString('username', _usernameController.text);
+    await prefs.setString('password', _passwordController.text);
+    await prefs.setString('name', _nameController.text);
+    await prefs.setInt('age', _age.round());
+    await prefs.setString('country', _country);
+    await prefs.setStringList('habits', selectedHabits);
 
-  void _register() async {
-    if (_nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name')),
-      );
-      return;
-    }
-    if (_usernameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a username')),
-      );
-      return;
-    }
-    if (selectedHabits.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one habit')),
-      );
-      return;
-    }
-
-    // Save user details to local storage
-    final user = {
-      'name': _nameController.text,
-      'username': _usernameController.text,
-      'age': _age.round(),
-      'country': _country,
-      'habits': selectedHabits,
-    };
-    _saveUserToLocalStorage(user);
-
-    // Navigate to the login screen
+    // Navigate to LoginScreen
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -173,9 +118,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onTap: () {
                         setState(() {
                           if (isSelected) {
-                            selectedHabits.remove(habit); // Deselect habit
+                            selectedHabits.remove(habit);
                           } else {
-                            selectedHabits.add(habit); // Select habit
+                            selectedHabits.add(habit);
                           }
                         });
                       },
@@ -262,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
         isExpanded: true,
         underline: const SizedBox(),
-        items: _countries.map((String value) {
+        items: CountryList.countries.map((String value) {
           return DropdownMenuItem<String>(
             value: value,
             child: Text(value),

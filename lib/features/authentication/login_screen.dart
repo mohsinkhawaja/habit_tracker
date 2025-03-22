@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:habit_tracker/features/authentication/register_screen.dart';
-import 'package:habit_tracker/features/home_screen/habit_tracker_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'register_screen.dart';
+import 'package:habit_tracker/features/home_screen/habit_tracker_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,44 +14,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Default credentials
-  final String defaultUsername = 'testuser';
-  final String defaultPassword = 'password123';
-
-  Future<Map<String, dynamic>?> _getUserFromLocalStorage() async {
+  Future<void> _login() async {
     final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user');
-    if (userJson != null) {
-      return jsonDecode(userJson); // Convert JSON string back to a map
-    }
-    return null;
-  }
+    final savedUsername = prefs.getString('username');
+    final savedPassword = prefs.getString('password');
 
-  void _login() async {
-    final user = await _getUserFromLocalStorage();
-    if (!mounted) return; // Check if the widget is still mounted
-
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No registered user found')),
+    if (_usernameController.text == savedUsername &&
+        _passwordController.text == savedPassword) {
+      // Navigate to HabitTrackerScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HabitTrackerScreen(username: savedUsername!),
+        ),
       );
-      return;
-    }
-
-    if (_usernameController.text != user['username']) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid username')),
+        const SnackBar(content: Text('Invalid username or password')),
       );
-      return;
     }
-
-    // Navigate to the home screen
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HabitTrackerScreen(username: user['username']),
-      ),
-    );
   }
 
   @override
