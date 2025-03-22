@@ -69,6 +69,15 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       appBar: AppBar(
         backgroundColor: Colors.blue.shade700,
         title: const Text('Configure Habits'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            // Save habits before navigating back
+            _saveHabits().then((_) {
+              Navigator.pop(context);
+            });
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:habit_tracker/features/authentication/login_screen.dart';
+import 'package:habit_tracker/features/detailscreen/detail_screen.dart';
 import 'add_habit_screen.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,12 +21,12 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   @override
   void initState() {
     super.initState();
-    _loadHabits();
+    _loadHabits(); // Load habits when the screen is created
   }
 
   Future<void> _loadHabits() async {
     final prefs = await SharedPreferences.getInstance();
-    final habitsJson = prefs.getString('habits');
+    final habitsJson = prefs.getString('selectedHabits');
     if (habitsJson != null) {
       setState(() {
         selectedHabitsMap = Map<String, String>.from(jsonDecode(habitsJson));
@@ -34,7 +36,12 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   Future<void> _saveHabits() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('habits', jsonEncode(selectedHabitsMap));
+    prefs.setString('selectedHabits', jsonEncode(selectedHabitsMap));
+  }
+
+  Future<void> _clearUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Clear all user data from SharedPreferences
   }
 
   Color _getColorFromHex(String hexColor) {
@@ -62,14 +69,15 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         ),
         automaticallyImplyLeading: true,
       ),
+      // Add Drawer here
       drawer: Drawer(
-        backgroundColor: Color(0xffFDF1FE),
+        backgroundColor: Color(0xffFDF1FE), // Light purple background
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue.shade700,
+                color: Colors.blue.shade700, // Blue header
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,12 +121,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 style: TextStyle(color: Colors.black),
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddHabitScreen(),
-                  ),
-                );
+                // Navigate to Personal Info Screen (you can add this later)
               },
             ),
             ListTile(
@@ -131,12 +134,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 style: TextStyle(color: Colors.black),
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddHabitScreen(),
-                  ),
-                );
+                // Navigate to Report Screen (you can add this later)
               },
             ),
             ListTile(
@@ -149,12 +147,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 style: TextStyle(color: Colors.black),
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddHabitScreen(),
-                  ),
-                );
+                // Navigate to Notifications Screen (you can add this later)
               },
             ),
             ListTile(
@@ -167,12 +160,16 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 style: TextStyle(color: Colors.black),
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddHabitScreen(),
-                  ),
-                );
+                // Sign-out logic
+                _clearUserData().then((_) {
+                  // Navigate to LoginScreen and remove all previous screens
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginScreen(),
+                    ),
+                  );
+                });
               },
             ),
           ],
@@ -319,23 +316,39 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   Widget _buildHabitCard(String title, Color color,
       {bool isCompleted = false}) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: color,
-      child: Container(
-        height: 60, // Adjust the height for thicker cards.
-        child: ListTile(
-          title: Text(
-            title.toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+    return GestureDetector(
+      onTap: () {
+        // Navigate to DetailScreen with habit data
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(
+              item: {
+                'title': title,
+                'description': 'This is a detailed description of the habit.',
+              },
             ),
           ),
-          trailing: isCompleted
-              ? const Icon(Icons.check_circle, color: Colors.green, size: 28)
-              : null,
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        color: color,
+        child: Container(
+          height: 60, // Adjust the height for thicker cards.
+          child: ListTile(
+            title: Text(
+              title.toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            trailing: isCompleted
+                ? const Icon(Icons.check_circle, color: Colors.green, size: 28)
+                : null,
+          ),
         ),
       ),
     );

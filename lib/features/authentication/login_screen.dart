@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:habit_tracker/features/authentication/register_screen.dart';
 import 'package:habit_tracker/features/home_screen/habit_tracker_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert'; // For jsonDecode
+import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
