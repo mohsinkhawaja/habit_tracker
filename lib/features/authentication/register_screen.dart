@@ -15,7 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   double _age = 25;
-  String _country = CountryList.countries.first;
+  String _country = 'Loading...'; // Default value
   List<String> selectedHabits = [];
   List<String> availableHabits = [
     'Wake Up Early',
@@ -29,6 +29,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Journal',
     'Walk 10,000 Steps'
   ];
+  List<String> countries = []; // List to store fetched countries
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCountries(); // Fetch countries when the screen initializes
+  }
+
+  Future<void> _fetchCountries() async {
+    try {
+      final fetchedCountries = await CountryList.fetchCountries();
+      setState(() {
+        countries = fetchedCountries;
+        _country =
+            countries.isNotEmpty ? countries.first : 'No countries found';
+      });
+    } catch (e) {
+      setState(() {
+        _country = 'Failed to load countries';
+      });
+    }
+  }
 
   Future<void> _register() async {
     final prefs = await SharedPreferences.getInstance();
@@ -207,7 +229,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
         isExpanded: true,
         underline: const SizedBox(),
-        items: CountryList.countries.map((String value) {
+        items: countries.map((String value) {
           return DropdownMenuItem<String>(
             value: value,
             child: Text(value),
