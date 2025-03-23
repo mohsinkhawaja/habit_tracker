@@ -34,8 +34,8 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
 
   Future<void> _loadHabits() async {
     final prefs = await SharedPreferences.getInstance();
-    final selectedHabitsJson = prefs.getString('selectedHabits');
-    final completedHabitsJson = prefs.getString('completedHabits');
+    final selectedHabitsJson = prefs.getString('selectedHabitsMap');
+    final completedHabitsJson = prefs.getString('completedHabitsMap');
 
     setState(() {
       if (selectedHabitsJson != null) {
@@ -49,49 +49,35 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
     });
   }
 
-  // Future<void> _saveHabit() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final habit = _habitController.text.trim();
+  Future<void> _saveHabits() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedHabitsMap', jsonEncode(selectedHabitsMap));
+    await prefs.setString('completedHabitsMap', jsonEncode(completedHabitsMap));
+  }
 
-  //   if (habit.isNotEmpty) {
-  //     // Load existing habits
-  //     final habitsJson = prefs.getString('selectedHabitsMap') ?? '{}';
-  //     final habitsMap = Map<String, String>.from(jsonDecode(habitsJson));
-
-  //     // Add new habit with the selected color
-  //     habitsMap[habit] = selectedColor.value.toRadixString(16);
-
-  //     // Save updated habits
-  //     await prefs.setString('selectedHabitsMap', jsonEncode(habitsMap));
-
-  //     // Navigate back to HabitTrackerScreen
-  //     Navigator.pop(context, true); // Pass `true` to indicate success
-  //   } else {
-  //     // Show error message if the habit field is empty
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text('Please enter a habit.'),
-  //       ),
-  //     );
-  //   }
-  // }
   Future<void> _saveHabit() async {
     final prefs = await SharedPreferences.getInstance();
     final habit = _habitController.text.trim();
 
     if (habit.isNotEmpty) {
-      // Load existing habits
-      final habitsJson = prefs.getString('selectedHabits') ?? '{}';
-      final habitsMap = Map<String, String>.from(jsonDecode(habitsJson));
-
       // Add new habit with the selected color
-      habitsMap[habit] = selectedColor.value.toRadixString(16);
+      selectedHabitsMap[habit] = selectedColor.value.toRadixString(16);
 
       // Save updated habits
-      await prefs.setString('selectedHabits', jsonEncode(habitsMap));
+      await _saveHabits();
 
-      // Navigate back to HabitTrackerScreen
-      Navigator.pop(context, true); // Pass `true` to indicate success
+      // Clear the input field
+      _habitController.clear();
+
+      // Update the UI
+      setState(() {});
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Habit added successfully.'),
+        ),
+      );
     } else {
       // Show error message if the habit field is empty
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,6 +86,23 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _deleteHabit(String habitName) async {
+    setState(() {
+      selectedHabitsMap.remove(habitName);
+      completedHabitsMap.remove(habitName);
+    });
+
+    // Save the updated habits
+    await _saveHabits();
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Habit deleted successfully.'),
+      ),
+    );
   }
 
   @override
@@ -217,12 +220,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        setState(() {
-                          // Remove habit from both maps if it exists
-                          selectedHabitsMap.remove(habitName);
-                          completedHabitsMap.remove(habitName);
-                        });
-                        _saveHabit(); // Save habits to local storage
+                        _deleteHabit(habitName); // Delete the habit
                       },
                     ),
                   );

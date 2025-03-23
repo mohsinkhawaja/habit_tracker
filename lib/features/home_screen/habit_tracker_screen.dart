@@ -3,9 +3,9 @@ import 'package:habit_tracker/features/authentication/login_screen.dart';
 import 'package:habit_tracker/features/detailscreen/detail_screen.dart';
 import 'package:habit_tracker/features/menu/personal_info_screen.dart';
 import 'package:habit_tracker/features/menu/reports_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'add_habit_screen.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HabitTrackerScreen extends StatefulWidget {
   final String username;
@@ -41,7 +41,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   Future<void> _loadHabits() async {
     final prefs = await SharedPreferences.getInstance();
-    final habitsJson = prefs.getString('selectedHabits') ?? '{}';
+    final habitsJson = prefs.getString('selectedHabitsMap') ?? '{}';
     setState(() {
       selectedHabitsMap = Map<String, String>.from(jsonDecode(habitsJson));
     });
@@ -49,20 +49,47 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   Future<void> _saveHabits() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('selectedHabits', jsonEncode(selectedHabitsMap));
+    await prefs.setString('selectedHabitsMap', jsonEncode(selectedHabitsMap));
+    await prefs.setString('completedHabitsMap', jsonEncode(completedHabitsMap));
   }
 
-  Future<void> _clearUserData() async {
+  Future<void> _markHabitAsCompleted(String habit) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear all user data from SharedPreferences
+
+    // Load the weekly data
+    String? storedData = prefs.getString('weeklyData');
+    Map<String, List<int>> weeklyData = {};
+    if (storedData != null) {
+      weeklyData = (jsonDecode(storedData) as Map<String, dynamic>).map(
+        (key, value) => MapEntry(key, List<int>.from(value as List<dynamic>)),
+      );
+    }
+
+    // Get the current day index (0 = Monday, 1 = Tuesday, ..., 6 = Sunday)
+    final currentDayIndex = DateTime.now().weekday - 1;
+
+    // Update the completion status for the habit on the current day
+    if (weeklyData.containsKey(habit)) {
+      weeklyData[habit]![currentDayIndex] = 1; // Mark as completed
+    } else {
+      weeklyData[habit] = List.generate(7, (_) => 0); // Initialize with 0s
+      weeklyData[habit]![currentDayIndex] = 1; // Mark as completed
+    }
+
+    // Save the updated weekly data
+    await prefs.setString('weeklyData', jsonEncode(weeklyData));
+
+    // Print the updated weekly data for debugging
+    print('Updated Weekly Data: $weeklyData');
   }
 
+  // Method to convert hex color string to Color
   Color _getColorFromHex(String hexColor) {
-    hexColor = hexColor.replaceAll('#', '');
+    hexColor = hexColor.replaceAll('#', ''); // Remove the '#' character
     if (hexColor.length == 6) {
-      hexColor = 'FF$hexColor'; // Add opacity if not included.
+      hexColor = 'FF$hexColor'; // Add opacity if not included
     }
-    return Color(int.parse('0x$hexColor'));
+    return Color(int.parse('0x$hexColor')); // Convert hex to Color
   }
 
   @override
@@ -193,7 +220,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           setState(() {
                             String color = selectedHabitsMap.remove(habit)!;
                             completedHabitsMap[habit] = color;
-                            _saveHabits();
+                            _markHabitAsCompleted(habit); // Update weekly data
+                            _saveHabits(); // Save the updated data
                           });
                         },
                         background: Container(

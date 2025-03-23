@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,9 +37,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
       Map<String, dynamic> selectedHabitsMap =
           jsonDecode(selectedHabitsMapString);
       selectedHabits = selectedHabitsMap.keys.toList();
-
-      // Print the loaded habits for debugging
-      print('Loaded selectedHabitsMap: $selectedHabitsMap');
     } else {
       selectedHabits = [];
     }
@@ -59,9 +55,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       Map<String, List<int>> mixedData = {
         for (var habit in selectedHabits)
           habit: List.generate(
-              7,
-              (_) =>
-                  Random().nextBool() ? 1 : 0), // Generate a mix of 0s and 1s
+              7, (_) => 0), // Initialize all habits as not completed
       };
       await prefs.setString('weeklyData', jsonEncode(mixedData));
       storedData = jsonEncode(mixedData);
@@ -75,6 +69,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
             List<int>.from(value),
           ));
     });
+
+    // Print the weekly data for debugging
+    print('Weekly Data: $weeklyData');
   }
 
   @override
