@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:habit_tracker/features/authentication/login_screen.dart';
 import 'package:habit_tracker/features/detailscreen/detail_screen.dart';
+import 'package:habit_tracker/features/menu/notificatons_screen.dart';
 import 'package:habit_tracker/features/menu/personal_info_screen.dart';
 import 'package:habit_tracker/features/menu/reports_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -173,6 +174,14 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             ListTile(
               leading: Icon(Icons.notifications),
               title: Text('Notifications'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => NotificationsScreen()),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.logout),
