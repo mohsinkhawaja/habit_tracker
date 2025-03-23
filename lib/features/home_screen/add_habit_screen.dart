@@ -49,12 +49,57 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
     });
   }
 
-  Future<void> _saveHabits() async {
+  // Future<void> _saveHabit() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final habit = _habitController.text.trim();
+
+  //   if (habit.isNotEmpty) {
+  //     // Load existing habits
+  //     final habitsJson = prefs.getString('selectedHabitsMap') ?? '{}';
+  //     final habitsMap = Map<String, String>.from(jsonDecode(habitsJson));
+
+  //     // Add new habit with the selected color
+  //     habitsMap[habit] = selectedColor.value.toRadixString(16);
+
+  //     // Save updated habits
+  //     await prefs.setString('selectedHabitsMap', jsonEncode(habitsMap));
+
+  //     // Navigate back to HabitTrackerScreen
+  //     Navigator.pop(context, true); // Pass `true` to indicate success
+  //   } else {
+  //     // Show error message if the habit field is empty
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Please enter a habit.'),
+  //       ),
+  //     );
+  //   }
+  // }
+  Future<void> _saveHabit() async {
     final prefs = await SharedPreferences.getInstance();
-    // Save selectedHabitsMap
-    prefs.setString('selectedHabits', jsonEncode(selectedHabitsMap));
-    // Save completedHabitsMap
-    prefs.setString('completedHabits', jsonEncode(completedHabitsMap));
+    final habit = _habitController.text.trim();
+
+    if (habit.isNotEmpty) {
+      // Load existing habits
+      final habitsJson = prefs.getString('selectedHabits') ?? '{}';
+      final habitsMap = Map<String, String>.from(jsonDecode(habitsJson));
+
+      // Add new habit with the selected color
+      habitsMap[habit] = selectedColor.value.toRadixString(16);
+
+      // Save updated habits
+      await prefs.setString('selectedHabits', jsonEncode(habitsMap));
+
+      // Navigate back to HabitTrackerScreen
+      Navigator.pop(context, true); // Pass `true` to indicate success
+    } else {
+      // Show error message if the habit field is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a habit.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -70,12 +115,10 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
         backgroundColor: Colors.blue.shade700,
         title: const Text('Configure Habits'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            // Save habits before navigating back
-            _saveHabits().then((_) {
-              Navigator.pop(context);
-            });
+            // Navigate back without saving
+            Navigator.pop(context);
           },
         ),
       ),
@@ -119,7 +162,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                       ),
                       child: Text(
                         colorName,
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -137,15 +180,14 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
             ElevatedButton(
               onPressed: () {
                 if (_habitController.text.isNotEmpty) {
-                  setState(() {
-                    // Add the new habit to the selectedHabitsMap with the chosen color
-                    selectedHabitsMap[_habitController.text] =
-                        selectedColor.value.toRadixString(16);
-                    _habitController.clear();
-                    selectedColorName = 'Amber'; // Reset to default
-                    selectedColor = _habitColors[selectedColorName]!;
-                  });
-                  _saveHabits(); // Save habits to local storage
+                  _saveHabit(); // Save the habit
+                } else {
+                  // Show error message if the habit field is empty
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a habit.'),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -173,14 +215,14 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                     ),
                     title: Text(habitName),
                     trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
                         setState(() {
                           // Remove habit from both maps if it exists
                           selectedHabitsMap.remove(habitName);
                           completedHabitsMap.remove(habitName);
                         });
-                        _saveHabits(); // Save habits to local storage
+                        _saveHabit(); // Save habits to local storage
                       },
                     ),
                   );

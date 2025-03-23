@@ -34,6 +34,32 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
+  // During login
+  // Future<void> _login() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final storedUsername = prefs.getString('username');
+  //   final storedPassword = prefs.getString('password');
+
+  //   print('Stored Username: $storedUsername');
+  //   print('Stored Password: $storedPassword');
+
+  //   if (_usernameController.text == storedUsername &&
+  //       _passwordController.text == storedPassword) {
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(
+  //           builder: (context) => const HabitTrackerScreen(
+  //                 username: 'savedUsername!',
+  //               )),
+  //     );
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Invalid username or password'),
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

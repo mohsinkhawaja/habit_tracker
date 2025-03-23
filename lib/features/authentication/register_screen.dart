@@ -15,7 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   double _age = 25;
-  String _country = 'Loading...'; // Default value
+  String _country = 'Loading...';
   List<String> selectedHabits = [];
   List<String> availableHabits = [
     'Wake Up Early',
@@ -29,26 +29,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Journal',
     'Walk 10,000 Steps'
   ];
-  List<String> countries = []; // List to store fetched countries
+  List<String> countries = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchCountries(); // Fetch countries when the screen initializes
+    _fetchCountries();
   }
 
   Future<void> _fetchCountries() async {
     try {
       final fetchedCountries = await CountryList.fetchCountries();
-      setState(() {
-        countries = fetchedCountries;
-        _country =
-            countries.isNotEmpty ? countries.first : 'No countries found';
-      });
+      if (mounted) {
+        setState(() {
+          countries = fetchedCountries;
+          _country =
+              countries.isNotEmpty ? countries.first : 'No countries found';
+        });
+      }
     } catch (e) {
-      setState(() {
-        _country = 'Failed to load countries';
-      });
+      if (mounted) {
+        setState(() {
+          _country = 'Failed to load countries';
+        });
+      }
     }
   }
 
@@ -61,7 +65,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     await prefs.setString('country', _country);
     await prefs.setStringList('habits', selectedHabits);
 
-    // Navigate to LoginScreen
+    print('Registered Username: ${_usernameController.text}');
+    print('Registered Password: ${_passwordController.text}');
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
